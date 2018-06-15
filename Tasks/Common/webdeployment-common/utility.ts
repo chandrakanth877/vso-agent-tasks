@@ -47,7 +47,7 @@ export function fileExists(path): boolean {
  */
 export function copySetParamFileIfItExists(setParametersFile: string) : string {
 
-    if(setParametersFile === null || (!tl.filePathSupplied('SetParametersFile')) || setParametersFile == tl.getVariable('System.DefaultWorkingDirectory')) {
+    if(!setParametersFile || (!tl.filePathSupplied('SetParametersFile')) || setParametersFile == tl.getVariable('System.DefaultWorkingDirectory')) {
         setParametersFile = null;
     }
     else if (!fileExists(setParametersFile)) {
@@ -119,7 +119,7 @@ export function findfiles(filepath){
         var allFiles = tl.find(findPathRoot);
 
         // Now matching the pattern against all files
-        filesList = tl.match(allFiles, filepath, '', {matchBase: true});
+        filesList = tl.match(allFiles, filepath, '', {matchBase: true, nocase: !!tl.osType().match(/^Win/) });
 
         // Fail if no matching files were found
         if (!filesList || filesList.length == 0) {
@@ -148,7 +148,7 @@ export async function isMSDeployPackage(webAppPackage: string ) {
     var isParamFilePresent = false;
     var pacakgeComponent = await zipUtility.getArchivedEntries(webAppPackage);
     if (((pacakgeComponent["entries"].indexOf("parameters.xml") > -1) || (pacakgeComponent["entries"].indexOf("Parameters.xml") > -1)) && 
-    ((pacakgeComponent["entries"].indexOf("systemInfo.xml") > -1) || (pacakgeComponent["entries"].indexOf("systeminfo.xml") > -1))) {
+    ((pacakgeComponent["entries"].indexOf("systemInfo.xml") > -1) || (pacakgeComponent["entries"].indexOf("systeminfo.xml") > -1) || (pacakgeComponent["entries"].indexOf("SystemInfo.xml") > -1))) {
         isParamFilePresent = true;
     }
     tl.debug("Is the package an msdeploy package : " + isParamFilePresent);
@@ -174,4 +174,36 @@ export function copyDirectory(sourceDirectory: string, destDirectory: string) {
             tl.cp(srcDirPath, destinationPath, '-f', false);
         }
     }
+}
+
+export async function generateTemporaryFolderForDeployment(isFolderBasedDeployment: boolean, webDeployPkg: string) {
+    var folderPath = generateTemporaryFolderOrZipPath(tl.getVariable('System.DefaultWorkingDirectory'), true);
+        
+    if(isFolderBasedDeployment) {
+        tl.debug('Copying Web Packge: ' + webDeployPkg + ' to temporary location: ' + folderPath);
+        copyDirectory(webDeployPkg, folderPath);
+        tl.debug('Copied Web Package: ' + webDeployPkg + ' to temporary location: ' + folderPath + ' successfully.');
+    }
+    else {
+        await zipUtility.unzip(webDeployPkg, folderPath);
+    }
+    return folderPath;
+}
+
+export async function archiveFolderForDeployment(isFolderBasedDeployment: boolean, folderPath: string) {
+    var webDeployPkg;
+
+    if(isFolderBasedDeployment) {
+        webDeployPkg = folderPath;
+    }
+    else {
+        var tempWebPackageZip = generateTemporaryFolderOrZipPath(tl.getVariable('System.DefaultWorkingDirectory'), false);
+        webDeployPkg = await zipUtility.archiveFolder(folderPath, "", tempWebPackageZip);
+        tl.rmRF(folderPath, true);
+    }
+
+    return {
+        "webDeployPkg": webDeployPkg,
+        "tempPackagePath": webDeployPkg
+    };
 }
