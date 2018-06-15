@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "sourceMap": true
+    },
+    "files": [
+        "publishtestresults.ts",
+        "testResultsUploader.ts",
+        "testresultreader.ts"
+    ],
+    "exclude": [
+        "./node_modules"
+    ]
+}

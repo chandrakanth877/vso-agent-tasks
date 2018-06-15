@@ -1,0 +1,25 @@
+{
+  "name": "percpublishtestresultswithtestcases",
+  "version": "1.0.0",
+  "description": "",
+  "main": "publishtestresults.js",
+  "dependencies": {
+    "@types/node": "^7.0.31",
+    "fs": "0.0.1-security",
+    "fs-extra": "^3.0.1",
+    "path": "^0.12.7",
+    "promise": "^7.1.1",
+    "promise-sequential": "^1.1.1",
+    "request": "^2.81.0",
+    "request-promise": "^4.2.2",
+    "vsts-task-lib": "^2.0.5",
+    "xmlreader": "^0.2.3",
+    "xslt-processor": "^0.10.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "ALME2E",
+  "license": "ISC"
+}

@@ -1,0 +1,151 @@
+{
+  "id": "92cda420-aa43-11e6-915e-d77172ce108a",
+  "name": "TrierAnotherBuildXPlat",
+  "friendlyName": "Trigger Another Build XPlat",
+  "description": "Trigger another build and wait - Cross Platform -",
+  "author": "ALME2E",
+  "helpMarkDown": "Replace with markdown to show in help",
+  "category": "Utility",
+  "visibility": [
+    "Build",
+    "Release"
+  ],
+  "demands": [],
+  "version": {
+    "Major": "0",
+    "Minor": "1",
+    "Patch": "48"
+  },
+  "minimumAgentVersion": "1.95.0",
+  "groups": [
+    {
+      "name": "advanced",
+      "displayName": "Advanced",
+      "isExpanded": true
+    },
+    {
+            "name": "system",
+            "displayName": "System Settings",
+            "isExpanded": false
+        }
+  ],
+  "instanceNameFormat": "TriggerAnotherBuildXPlat $(message)",
+  "inputs": [
+    {
+      "name": "customAuth",
+      "type": "boolean",
+      "label": "Custom Auth (Endpoint)",
+      "defaultValue": false,
+      "required": true,
+      "helpMarkDown": "Access the build api via custom Endpoint. Set it to false for bearer token authorization via System.AccessToken variable."
+    },
+    {
+      "name": "connectedServiceName",
+      "type": "connectedService:Generic",
+      "label": "Server Endpoint",
+      "required": false,
+      "helpMarkDown": "The server generic endpoint, set the key -Password/Token Key- field to your API key.",
+      "visibleRule": "customAuth = true"
+    },
+    {
+      "name": "BuildDefinitionName",
+      "type": "string",
+      "label": "Build Definition name",
+      "required": true,
+      "helpMarkDown": "Provide the build definition name to be triggered."
+    },
+    {
+      "name": "waitForTriggeredBuild",
+      "type": "boolean",
+      "label": "Wait for completion",
+      "required": false,
+      "defaultValue": false,
+      "helpMarkDown": "Wait for the triggered build to be finished."
+    },
+    {
+      "name": "timeout",
+      "type": "string",
+      "label": "Timeout [minutes]",
+      "required": false,
+      "defaultValue": "120",
+      "helpMarkDown": "Once timeout expired failing the triggering step and moving on to the next step.",
+      "visibleRule": "waitForTriggeredBuild = true"
+    },
+    {
+      "name": "triggerWithChangeset",
+      "type": "boolean",
+      "label": "Trigger With Changeset",
+      "required": false,
+      "defaultValue": false,
+      "helpMarkDown": "The current changeset will be passed to the child build."
+    },
+    {
+      "name": "triggerWithShelveset",
+      "type": "boolean",
+      "label": "Trigger With Shelveset",
+      "required": false,
+      "defaultValue": false,
+      "helpMarkDown": "Trigger the selected build with shelvset (if exist)."
+    },
+    {
+      "name": "registerToWait",
+      "type": "boolean",
+      "label": "Register to wait",
+      "required": true,
+      "defaultValue": false,
+      "helpMarkDown": "Once this checked the triggered build will be added into wait list (for the Wait step).",
+      "visibleRule": "waitForTriggeredBuild = false"
+    },
+    {
+      "name": "waitTag",
+      "type": "string",
+      "label": "Wait Tag",
+      "required": true,
+      "defaultValue": "default",
+      "helpMarkDown": "Specify a custom tag for the Wait step, this tag can be used on the Wait step to determine wait list of triggered builds.",
+      "visibleRule": "registerToWait = true"
+    },
+    {
+            "name": "http_proxy",
+            "type": "string",
+            "label": "HTTP Proxy",
+            "defaultValue": "",
+            "helpMarkDown": "proxy ",
+            "required": false,
+            "groupName": "system"
+        },
+        {
+            "name": "https_proxy",
+            "type": "string",
+            "label": "HTTPS Proxy",
+            "defaultValue": "",
+            "helpMarkDown": "proxy ",
+            "required": false,
+            "groupName": "system"
+        },
+    {
+      "name": "parameters",
+      "type": "string",
+      "label": "Parameters",
+      "required": false,
+      "defaultValue": "",
+      "helpMarkDown": "A comma-delimited list of parameters in the form of param1=value1;param2=value2;... this params will be passed to the triggered build variables.",
+      "groupName": "advanced"
+    },
+    {
+      "name": "demands",
+      "type": "string",
+      "label": "Demands",
+      "required": false,
+      "defaultValue": "",
+      "helpMarkDown": "A comma-delimited list of demands in the form of capability1=value1;capability2=value2;... for example: KW=true;Protex=yes.",
+      "groupName": "advanced"
+    }
+  ],
+  "execution": {
+    "Node": {
+      "target": "triggerAnotherBuild.js",
+      "argumentFormat": ""
+    }
+  }
+}
