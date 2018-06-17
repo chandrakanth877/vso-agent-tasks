@@ -106,8 +106,11 @@ export function updateTestResultsInTestRun(publishData: pbtr.PublishData) {
     var testResults = publishData.dictTestResults;
     if (Object.keys(testResults).length > 0) {
         var url = 'test/runs/' + publishData.testRunID + '/results?api-version=2.0';
+        console.log("url: " + url)
         var json = createJsonWithTestResults(publishData);
+        console.log("json: " +JSON.stringify(json))
         var options = pbtr.createOptions('PATCH_post', url, json);
+        console.log("options: " + JSON.stringify(options));
         return requestPromise(options).then((httpsResponse) => { return verifyTestResultsAddedToTestRun(httpsResponse, publishData) })
     }
     else {

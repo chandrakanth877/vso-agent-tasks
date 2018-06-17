@@ -534,6 +534,9 @@ function getTestResults(filePath: string, publishData: PublishData) {
     else if (testRunner == "XUnit") {
         reader = new trrd.XUnitResultReader();
     }
+    else if (testRunner == "VSTest") {
+        reader = new trrd.VSTestResultReader();
+    }
 
     return reader.readResults(filePath).then((res) => {
         var testSuiteArr = [];
@@ -563,6 +566,19 @@ function getTestResults(filePath: string, publishData: PublishData) {
         }
         else if (testRunner == "XUnit") {
 
+        }
+        else if (testRunner == "VSTest") {
+            for (var testResult of res.testResults) {
+                var parsedSuiteName = testResult.automatedTestStorage.split('\\')
+                parsedSuiteName = parsedSuiteName[parsedSuiteName.length - 1]
+                parsedSuiteName = parsedSuiteName.split('.')[0];
+                testResult.automatedTestStorage = parsedSuiteName;
+                publishData.dictTestResults[testResult.automatedTestName] = testResult;
+                testSuiteArr.push(parsedSuiteName);
+            }
+            console.log('test Suite Arrey:');
+            console.log(testSuiteArr)
+            publishData.AllTestSuites = testSuiteArr.filter((x, i, a) => a.indexOf(x) == i);
         }
         console.log('publish data test result dictionary:');
         console.log(publishData.dictTestResults);

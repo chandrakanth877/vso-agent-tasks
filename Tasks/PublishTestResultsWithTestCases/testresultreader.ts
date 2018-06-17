@@ -77,6 +77,13 @@ export class XUnitResultReader implements IResultReader {
     }
 
 }
+export class VSTestResultReader implements IResultReader {
+
+    public readResults(file: string): Promise<TestRunWithResults>{
+        return new ResultReader("vstest").readResults(file);
+    }
+
+}
 
 export class TestSuiteSummary {
     name: string;
@@ -176,6 +183,9 @@ export class ResultReader {
         }
         else if (this.type == "xunit") {
             return this.parseXUnitXml(res);
+        }
+        else if (this.type == "vstest") {
+            return this.parseVstestTrx(res);
         }
         else {
             return null;
@@ -628,6 +638,144 @@ export class ResultReader {
 
         return name;
     }
+
+    private parseVstestTrx(res) {
+        var testRun2: TestRunWithResults;
+
+        var runTitle = '';
+        
+        //read test run summary - runname, host, start time, run duration
+        var runStartTime = new Date();
+        var totalRunDuration = 0;
+
+        var rootNode = res["TestRun"].at(0);
+        if (rootNode) {
+
+            var dateFromXml = new Date();
+            if (rootNode.Times.attributes().start) {
+                dateFromXml = rootNode.Times.attributes().start;
+            }
+
+            var timeFromXml = "00:00:00";
+            if (rootNode.Times.attributes().start) {
+                timeFromXml = rootNode.Times.attributes().start;
+            }
+
+            var dateTimeFromXml = new Date(dateFromXml + "T" + timeFromXml);
+            if (dateTimeFromXml < new Date()) {
+                runStartTime = dateTimeFromXml;
+            }
+        }
+
+        //run environment - platform, config, hostname
+        var runUser = rootNode.attributes().runUser ? rootNode.attributes().runUser : "";
+        var hostName = "";
+        var platform = "";
+
+        if (rootNode.environment) { var envNode = rootNode.environment.at(0); }
+
+        if (envNode) {
+
+            if (envNode.attributes()["machine-name"]) {
+                hostName = envNode.attributes()["machine-name"];
+            }
+
+            if (envNode.attributes().platform) {
+                platform = envNode.attributes().platform;
+            }
+        }            
+
+        //get all test cases
+        var testResults = [];
+
+        for (var t = 0; t < rootNode.Results["UnitTestResult"].count(); t++) {
+            testResults = testResults.concat(this.FindVstestTestCaseNodes(rootNode.Results["UnitTestResult"].at(t), rootNode.attributes().computerName, rootNode.TestDefinitions.UnitTest.at(0).attributes().storage)); 
+
+            if (rootNode.Results["UnitTestResult"].at(t).attributes().startTime && rootNode.Results["UnitTestResult"].at(t).attributes().endTime) {
+                totalRunDuration = rootNode.Results["UnitTestResult"].at(t).attributes().endTime - rootNode.Results["UnitTestResult"].at(t).attributes().startTime;
+            }
+        }
+
+        var completedDate = runStartTime;
+        completedDate.setSeconds(runStartTime.getSeconds() + totalRunDuration);
+
+
+        testRun2 = <TestRunWithResults>{
+            testResults: testResults,
+        };
+
+        return testRun2;
+    }
+
+    private FindVstestTestCaseNodes(startNode, hostName: string, assemblyName: string) {
+
+        var foundTestResults = [];
+
+        var testStorage = assemblyName;
+        if (startNode.attributes().type == "Assembly") {
+            testStorage = startNode.attributes().testName;
+        }
+
+        //if test-case node exist, read test case information
+        if (startNode) {
+
+            for (var i = 0; i < startNode.count(); i++) {
+                var testCaseNode = startNode.at(i);
+                
+                //testcase name and type
+                var testName = "";
+                if (startNode.attributes().testName) {
+                    testName = startNode.attributes().testName;
+                }                                                               
+
+                //testcase duration
+                var testCaseDuration = 0; //in seconds
+                if (testCaseNode.attributes().startTime && testCaseNode.attributes().endTime) {
+                    testCaseDuration = testCaseNode.attributes().endTime - testCaseNode.attributes().startTime;
+                }                            
+
+                //testcase outcome
+                var outcome = "Passed";
+                var errorMessage = "";
+                var stackTrace = "";
+                if (testCaseNode.attributes().outcome) {
+                    outcome = testCaseNode.attributes().outcome;
+                    if (testCaseNode.attributes().outcome == "Failed" && testCaseNode.Output.ErrorInfo.Message) {
+                        errorMessage = testCaseNode.Output.ErrorInfo.Message.text();
+                    }
+                    if (testCaseNode.attributes().outcome == "Failed" && testCaseNode.Output.ErrorInfo.StackTrace) {
+                        stackTrace = testCaseNode.Output.ErrorInfo.StackTrace.text();
+                    }
+                }
+
+                var testResult: TestResultCreateModel = <TestResultCreateModel>{
+                    state: "Completed",
+                    computerName: hostName,
+                    testCasePriority: "1",
+                    automatedTestName: testName,
+                    automatedTestStorage: testStorage,
+                    automatedTestType: "VSTest",
+                    testCaseTitle: testName,
+                    outcome: outcome,
+                    errorMessage: errorMessage,
+                    durationInMs: "" + Math.round(testCaseDuration * 1000), //convert to milliseconds
+                    stackTrace: stackTrace
+                };
+
+                foundTestResults.push(testResult);
+            }
+        }
+
+//        if (startNode.results["test-suite"]) {
+//            for (var j = 0; j < startNode.results["test-suite"].count(); j++) {
+//                foundTestResults = foundTestResults.concat(this.FindNUnitTestCaseNodes(startNode.results["test-suite"].at(j), hostName, testStorage));
+//            }
+//        }
+
+        return foundTestResults;
+    }
+
+    
 
 
     private fileNumberToTitle(runTitle, fileNumber) {
