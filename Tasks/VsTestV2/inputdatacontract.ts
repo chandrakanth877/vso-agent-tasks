@@ -21,6 +21,7 @@ export interface InputDataContract {
 export interface TestReportingSettings {
     TestRunTitle : string;
     TestResultsDirectory : string;
+    TestRunSystem : string;
 }
 
 export interface TestSelectionSettings {
@@ -81,6 +82,7 @@ export interface DistributionSettings {
 }
 
 export interface ExecutionSettings {
+    TestPlatformExecutionMode : string;
     DefaultTestBatchSize : number;
     AssemblyLevelParallelism : boolean;
     CodeCoverageEnabled : boolean;
@@ -95,6 +97,12 @@ export interface ExecutionSettings {
     TiaSettings : TiaSettings;
     TempFolder : string;
     VideoDataCollectorEnabled : boolean;
+    DiagnosticsSettings : DiagnosticsSettings;
+}
+
+export interface DiagnosticsSettings {
+    Enabled : boolean;
+    CollectDumpAlways : boolean;
 }
 
 export interface TiaSettings {
