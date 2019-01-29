@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
-    "target": "es2015",
+    "target": "ES6",
     "module": "commonjs",
     "noImplicitAny": false,
     "removeComments": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "moduleResolution": "node"
   },
   "compileOnSave": true,
-  "include": [ "src/*.ts", "test/*.ts" ],
+  "include": [ "src/*.ts" ],
   "exclude": [ "node_modules" ]
 }

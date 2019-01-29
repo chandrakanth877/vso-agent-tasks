@@ -1,5 +1,5 @@
-﻿import fs = require("fs");
-import tl = require("vsts-task-lib/task");
+﻿import fs = require('fs');
+import tl = require('vsts-task-lib/task');
 import kusto = require("./kusto");
 import utils = require("./utils");
 
